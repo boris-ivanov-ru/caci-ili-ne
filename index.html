@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Нормалан или ћаци</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #1a1a2e;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      padding: 1.5rem;
+    }
+    .screen.active {
+      display: flex;
+    }
+    #start-screen h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      text-align: center;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+    #start-screen p {
+      font-size: 1.1rem;
+      color: #a0a0c0;
+      margin-bottom: 2.5rem;
+      text-align: center;
+      max-width: 300px;
+      line-height: 1.5;
+    }
+    .btn {
+      appearance: none;
+      border: none;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #ffffff;
+      font-size: 1.25rem;
+      font-weight: 700;
+      padding: 1rem 2.5rem;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      text-align: center;
+      min-width: 220px;
+    }
+    .btn:active {
+      transform: scale(0.96);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    .btn-secondary {
+      background: transparent;
+      border: 2px solid #667eea;
+      box-shadow: none;
+      margin-top: 1rem;
+    }
+    .btn-secondary:active {
+      background: rgba(102, 126, 234, 0.1);
+    }
+    #camera-screen {
+      padding: 0;
+      position: relative;
+    }
+    .camera-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .camera-controls {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      padding: 0 1.5rem;
+    }
+    .shutter-btn {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 4px solid #ffffff;
+      background: rgba(255, 255, 255, 0.3);
+      cursor: pointer;
+      transition: transform 0.1s ease, background 0.1s ease;
+      position: relative;
+    }
+    .shutter-btn::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #ffffff;
+    }
+    .shutter-btn:active {
+      transform: scale(0.9);
+    }
+    .camera-overlay-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 1rem 1.5rem;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 100%);
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .close-camera {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.5rem;
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+    }
+    .flip-camera {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.25rem;
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+    }
+    #result-screen {
+      padding: 1.5rem;
+      gap: 1.5rem;
+    }
+    .result-image-wrapper {
+      width: 100%;
+      max-width: 400px;
+      aspect-ratio: 3 / 4;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #result-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .result-text {
+      font-size: 2.5rem;
+      font-weight: 800;
+      text-align: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .result-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      width: 100%;
+      max-width: 300px;
+    }
+    body {
+      transition: background-color 0.6s ease;
+    }
+    body.result-normal {
+      background-color: #008000;
+    }
+    body.result-special {
+      background-color: #ee4b2b;
+    }
+    .btn-ghost {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      color: transparent;
+      cursor: default;
+      min-width: 220px;
+      padding: 0.75rem 2.5rem;
+      margin-top: 0.5rem;
+      pointer-events: all;
+    }
+    .hidden {
+      display: none !important;
+    }
+    .error-message {
+      color: #ff6b6b;
+      text-align: center;
+      max-width: 300px;
+      line-height: 1.5;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="start-screen" class="screen active">
+    <h1>Нормалан или ћаци?</h1>
+    <p>Сликај и види да ли је неко  ћаци!</p>
+    <button id="start-btn" class="btn">Нормалан или ћаци</button>
+    <button id="secret-btn" class="btn-ghost" aria-hidden="true">&nbsp;</button>
+    <div id="error-msg" class="error-message hidden"></div>
+  </div>
+  <div id="camera-screen" class="screen">
+    <div class="camera-wrapper">
+      <div class="camera-overlay-top">
+        <button class="close-camera" id="close-camera" aria-label="Close">&#10005;</button>
+        <button class="flip-camera" id="flip-camera" aria-label="Flip camera">&#8635;</button>
+      </div>
+      <video id="video" autoplay playsinline muted></video>
+      <div class="camera-controls">
+        <button class="shutter-btn" id="shutter-btn" aria-label="Take picture"></button>
+      </div>
+    </div>
+  </div>
+  <div id="result-screen" class="screen">
+    <div class="result-image-wrapper">
+      <img id="result-image" alt="Your capture">
+    </div>
+    <div class="result-text" id="result-text">Нормалан</div>
+    <div class="result-buttons">
+      <button id="retake-btn" class="btn">Понови</button>
+      <button id="home-btn" class="btn btn-secondary">Start Over</button>
+    </div>
+  </div>
+  <script>
+    (function() {
+      const startScreen = document.getElementById('start-screen');
+      const cameraScreen = document.getElementById('camera-screen');
+      const resultScreen = document.getElementById('result-screen');
+      const startBtn = document.getElementById('start-btn');
+      const closeCameraBtn = document.getElementById('close-camera');
+      const flipCameraBtn = document.getElementById('flip-camera');
+      const shutterBtn = document.getElementById('shutter-btn');
+      const retakeBtn = document.getElementById('retake-btn');
+      const homeBtn = document.getElementById('home-btn');
+      const video = document.getElementById('video');
+      const resultImage = document.getElementById('result-image');
+      const resultText = document.getElementById('result-text');
+      const errorMsg = document.getElementById('error-msg');
+      let currentStream = null;
+      let facingMode = 'user';
+      let verdictMode = 'special';
+
+      function showScreen(screen) {
+        [startScreen, cameraScreen, resultScreen].forEach(s => s.classList.remove('active'));
+        screen.classList.add('active');
+      }
+      function showError(msg) {
+        errorMsg.textContent = msg;
+        errorMsg.classList.remove('hidden');
+      }
+      function clearError() {
+        errorMsg.textContent = '';
+        errorMsg.classList.add('hidden');
+      }
+      async function startCamera() {
+        clearError();
+        if (currentStream) {
+          currentStream.getTracks().forEach(track => track.stop());
+        }
+        const constraints = {
+          video: {
+            facingMode: facingMode,
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          },
+          audio: false
+        };
+        try {
+          currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+          video.srcObject = currentStream;
+          showScreen(cameraScreen);
+        } catch (err) {
+          console.error('Camera error:', err);
+          showError('Одобри камеру!.');
+        }
+      }
+      function stopCamera() {
+        if (currentStream) {
+          currentStream.getTracks().forEach(track => track.stop());
+          currentStream = null;
+        }
+        video.srcObject = null;
+      }
+      function capturePhoto() {
+        if (!video.videoWidth || !video.videoHeight) return;
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        if (facingMode === 'user') {
+          ctx.translate(canvas.width, 0);
+          ctx.scale(-1, 1);
+        }
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+        resultImage.src = dataUrl;
+        const isNormal = verdictMode === 'normal';
+        resultText.textContent = isNormal ? 'Нормалан' : 'Ћаци';
+        document.body.classList.remove('result-normal', 'result-special');
+        document.body.classList.add(isNormal ? 'result-normal' : 'result-special');
+        stopCamera();
+        showScreen(resultScreen);
+      }
+      document.getElementById('secret-btn').addEventListener('click', () => {
+        verdictMode = 'normal';
+        startCamera();
+      });
+      startBtn.addEventListener('click', () => {
+        verdictMode = 'special';
+        startCamera();
+      });
+      closeCameraBtn.addEventListener('click', () => {
+        stopCamera();
+        showScreen(startScreen);
+      });
+      flipCameraBtn.addEventListener('click', async () => {
+        facingMode = facingMode === 'user' ? 'environment' : 'user';
+        await startCamera();
+      });
+      shutterBtn.addEventListener('click', capturePhoto);
+      retakeBtn.addEventListener('click', startCamera);
+      homeBtn.addEventListener('click', () => {
+        stopCamera();
+        document.body.classList.remove('result-normal', 'result-special');
+        showScreen(startScreen);
+      });
+      window.addEventListener('beforeunload', stopCamera);
+    })();
+  </script>
+</body>
+</html>
